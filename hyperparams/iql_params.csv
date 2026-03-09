@@ -1,0 +1,11 @@
+benchmark,env_name,offline_steps,batch_size,discount,expectile,alpha
+OGBench,antmaze_large_explore,1000000,1024,0.995,0.9,1
+OGBench,antmaze_large_stitch,1000000,256,0.99,0.9,10
+OGBench,antsoccer_arena_stitch,1000000,256,0.995,0.9,1
+OGBench,cube_double_noisy,1000000,256,0.99,0.9,0.3
+OGBench,cube_single_noisy,1000000,256,0.99,0.9,3
+OGBench,cube_triple_noisy,1000000,1024,0.99,0.9,3
+OGBench,cube_triple_play,1000000,1024,0.99,0.9,1
+OGBench,humanoidmaze_medium_stitch,1000000,256,0.999,0.9,10
+OGBench,puzzle_4x4_noisy,1000000,256,0.99,0.9,1
+OGBench,scene_noisy,1000000,256,0.99,0.9,10

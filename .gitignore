@@ -1,0 +1,11 @@
+__pycache__/
+MUJOCO*
+multirun/
+wandb/
+outputs/
+exp/
+*.ipynb
+wandb/
+.vscode/
+trash/
+.pre-commit-config.yaml

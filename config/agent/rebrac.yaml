@@ -1,0 +1,15 @@
+agent_name: 'rebrac'
+
+# Tuned hyperparameters:
+alpha_actor: 0.01
+alpha_critic: 0.01
+
+# May vary depending on the benchmark/env:
+q_agg: "mean"
+
+# Fixed:
+actor_freq: 2
+actor_noise: 0.2
+actor_noise_clip: 0.5
+actor_fc_scale: 0.01
+tanh_squash: True

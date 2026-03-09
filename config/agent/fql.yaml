@@ -1,0 +1,11 @@
+agent_name: "fql"
+
+# Tuned hyperparameters:
+alpha: 300
+
+# May vary depending on the benchmark/env:
+q_agg: "mean" # | "min"
+flow_steps: 10
+
+# Fixed:
+normalize_q_loss: False

@@ -1,0 +1,8 @@
+agent_name: 'ifql'
+
+# Tuned hyperparameters:
+num_samples: 32
+
+# May vary depending on the benchmark/env:
+expectile: 0.9
+flow_steps: 10

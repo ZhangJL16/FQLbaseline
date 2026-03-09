@@ -1,0 +1,63 @@
+defaults:
+  - _self_
+  - agent: gfp
+  - override hydra/job_logging: disabled
+  # - opt: light_log # OPTIONAL
+
+
+seed: null
+env_name: "cube-double-play-singletask-v0"
+is_final: false # to flag runs we want to report as final performance
+
+wandb:
+  project: gfp
+  group: ${eval:'"Final" if ${is_final} else "Default"'}
+  settings:
+    x_disable_stats: true
+  # mode: online # Overridden by 'launcher'
+
+# To save and load checkpoints
+save_dir: exp
+restore_epoch: null
+restore_path: null
+
+# Computation parameters
+dataset_on_gpu: true # if visual => overridden to CPU
+n_steps_fused: 4
+n_eval_envs: 10
+
+# Training steps
+offline_steps: 1000000
+online_steps: 0
+buffer_size: 2000000
+balanced_sampling: False
+
+# Logging and evaluation
+eval_flow_policy: true # if it exists
+log_metrics: true # training metrics + eval info
+log_on_wandb: true
+log_locally: true
+log_interval: 20000
+eval_interval: 200000
+save_interval: 0
+save_last_checkpoint: false
+eval_episodes: ${eval:'100 if ${is_final} else 50'}
+video_episodes: 0
+video_frame_skip: 3
+
+# agent => Overridden/complemented by the sub-config "agent"
+agent:
+  lr: 3e-4
+  batch_size: 256
+  actor_hidden_dims: [512,512,512,512]
+  value_hidden_dims: [512,512,512,512]
+  layer_norm: True
+  actor_layer_norm: False
+  discount: 0.99
+  tau: 0.005
+  encoder: null # if None and needed => default to pixel_based.encoder
+
+pixel_based:
+  p_aug: 0.5
+  frame_stack: 3
+  encoder: impala_small

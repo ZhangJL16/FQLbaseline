@@ -1,0 +1,12 @@
+jax >= 0.6.2 # CPU version
+flax
+distrax
+ml_collections
+matplotlib
+wandb
+hydra-core
+# OGBench
+ogbench < 1.2
+# Minari
+minari[all]
+gymnasium-robotics

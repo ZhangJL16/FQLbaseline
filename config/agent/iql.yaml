@@ -1,0 +1,15 @@
+agent_name: 'iql'
+
+# Tuned hyperparameters:
+alpha: 10.0  # Temperature in AWR or BC coefficient in DDPG+BC.
+
+# May vary depending on the benchmark/env:
+expectile: 0.9
+actor_loss: 'awr'  # 'awr' or 'ddpgbc'
+
+# Following FQL's paper, Appendix E.2.IQL:
+actor_hidden_dims: [256,256,256,256]
+value_hidden_dims: [256,256,256,256]
+
+# Fixed
+const_std: True
