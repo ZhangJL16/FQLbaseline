@@ -57,20 +57,47 @@ uv --version
 
 ### 3.2.1 国内 uv 镜像源配置
 
-如果目标机器访问 `PyPI` 较慢，建议给 `uv` 配一个国内镜像。这里默认用清华源。
+如果目标机器访问 `PyPI` 较慢，建议不要只配一个源，而是给 `uv` 配多个国内镜像，避免某一个源同步慢或偶发超时后整次安装卡住。
 
-临时生效，只对当前 shell 有效：
+常用国内 PyPI 镜像地址：
 
 ```bash
-export UV_DEFAULT_INDEX="https://pypi.tuna.tsinghua.edu.cn/simple"
+清华: https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple/
+中科大: https://mirrors.ustc.edu.cn/pypi/simple/
+北外: https://mirrors.bfsu.edu.cn/pypi/web/simple/
+阿里云: https://mirrors.aliyun.com/pypi/simple/
+交大: https://mirror.sjtu.edu.cn/pypi/web/simple/
 ```
 
-永久生效，写入 `uv` 配置文件：
+只想临时切一个默认源时：
+
+```bash
+export UV_DEFAULT_INDEX="https://mirrors.ustc.edu.cn/pypi/simple/"
+```
+
+推荐的长期配置是多镜像回退，写入 `uv` 配置文件：
 
 ```bash
 mkdir -p ~/.config/uv && cat > ~/.config/uv/uv.toml <<'EOF'
 [[index]]
-url = "https://pypi.tuna.tsinghua.edu.cn/simple/"
+name = "tuna"
+url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple/"
+
+[[index]]
+name = "ustc"
+url = "https://mirrors.ustc.edu.cn/pypi/simple/"
+
+[[index]]
+name = "bfsu"
+url = "https://mirrors.bfsu.edu.cn/pypi/web/simple/"
+
+[[index]]
+name = "aliyun"
+url = "https://mirrors.aliyun.com/pypi/simple/"
+
+[[index]]
+name = "sjtug"
+url = "https://mirror.sjtu.edu.cn/pypi/web/simple/"
 default = true
 EOF
 ```
@@ -81,10 +108,30 @@ EOF
 cat ~/.config/uv/uv.toml
 ```
 
-如果你更想用阿里云，也可以把地址换成：
+如果你发现前面的镜像有包但版本比较旧，可以启用更激进的多源解析策略：
 
 ```bash
-https://mirrors.aliyun.com/pypi/simple/
+export UV_INDEX_STRATEGY="unsafe-best-match"
+```
+
+或者永久写入：
+
+```bash
+mkdir -p ~/.config/uv && cat >> ~/.config/uv/uv.toml <<'EOF'
+index-strategy = "unsafe-best-match"
+EOF
+```
+
+这个配置会在多个镜像之间尽量选择更合适的版本，但它比默认的 `first-index` 更激进。默认策略更保守，安全性更高；只有在你确实遇到某个镜像版本滞后导致卡依赖时，再打开这个选项。
+
+如果你只是想在不同机器上快速切换单个默认源，可以直接改下面任意一条：
+
+```bash
+export UV_DEFAULT_INDEX="https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple/"
+export UV_DEFAULT_INDEX="https://mirrors.ustc.edu.cn/pypi/simple/"
+export UV_DEFAULT_INDEX="https://mirrors.bfsu.edu.cn/pypi/web/simple/"
+export UV_DEFAULT_INDEX="https://mirrors.aliyun.com/pypi/simple/"
+export UV_DEFAULT_INDEX="https://mirror.sjtu.edu.cn/pypi/web/simple/"
 ```
 
 ### 3.3 创建虚拟环境
