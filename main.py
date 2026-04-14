@@ -1,6 +1,8 @@
 import os
 
-os.environ["MUJOCO_GL"] = "egl"
+# Default to EGL for headless MuJoCo rendering, but allow deployments to
+# override it (e.g. MUJOCO_GL=osmesa on servers without working EGL support).
+os.environ.setdefault("MUJOCO_GL", "egl")
 import random
 import time
 import tqdm
