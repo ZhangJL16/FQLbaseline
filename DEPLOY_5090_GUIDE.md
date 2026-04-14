@@ -15,8 +15,22 @@
 
 ## 2. 远程仓库地址
 
+当前推荐优先使用 Gitee 国内地址：
+
 ```bash
-git clone https://github.com/ZhangJL16/FQLbaseline.git
+git clone git@gitee.com:zhang-jiale0112/fqlbaseline.git
+```
+
+如果目标机器没有配置 SSH，也可以用 HTTPS：
+
+```bash
+git clone https://gitee.com/zhang-jiale0112/fqlbaseline.git
+```
+
+GitHub 地址保留为备用：
+
+```bash
+git clone git@github.com:ZhangJL16/FQLbaseline.git
 ```
 
 ## 3. 新机器从零部署
@@ -24,7 +38,7 @@ git clone https://github.com/ZhangJL16/FQLbaseline.git
 ### 3.1 克隆仓库
 
 ```bash
-git clone https://github.com/ZhangJL16/FQLbaseline.git && cd FQLbaseline
+git clone git@gitee.com:zhang-jiale0112/fqlbaseline.git && cd FQLbaseline
 ```
 
 ### 3.2 安装 uv
@@ -39,6 +53,38 @@ curl -LsSf https://astral.sh/uv/install.sh | sh && export PATH="$HOME/.local/bin
 
 ```bash
 uv --version
+```
+
+### 3.2.1 国内 uv 镜像源配置
+
+如果目标机器访问 `PyPI` 较慢，建议给 `uv` 配一个国内镜像。这里默认用清华源。
+
+临时生效，只对当前 shell 有效：
+
+```bash
+export UV_DEFAULT_INDEX="https://pypi.tuna.tsinghua.edu.cn/simple"
+```
+
+永久生效，写入 `uv` 配置文件：
+
+```bash
+mkdir -p ~/.config/uv && cat > ~/.config/uv/uv.toml <<'EOF'
+[[index]]
+url = "https://pypi.tuna.tsinghua.edu.cn/simple/"
+default = true
+EOF
+```
+
+检查当前配置是否生效后再安装依赖：
+
+```bash
+cat ~/.config/uv/uv.toml
+```
+
+如果你更想用阿里云，也可以把地址换成：
+
+```bash
+https://mirrors.aliyun.com/pypi/simple/
 ```
 
 ### 3.3 创建虚拟环境
