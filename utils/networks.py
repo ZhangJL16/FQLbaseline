@@ -273,10 +273,11 @@ class ActorVectorField(nn.Module):
 
 
 class ConditionalGaussianSource(nn.Module):
-    """State-conditioned Gaussian source distribution for flow matching."""
+    """State-conditioned Gaussian mixture source distribution for flow matching."""
 
     hidden_dims: Sequence[int]
     action_dim: int
+    num_components: int = 4
     layer_norm: bool = False
     log_std_min: float = -5.0
     log_std_max: float = 2.0
@@ -290,25 +291,30 @@ class ConditionalGaussianSource(nn.Module):
             layer_norm=self.layer_norm,
         )
         self.mean_net = nn.Dense(
-            self.action_dim, kernel_init=default_init(self.final_fc_init_scale)
+            self.num_components * self.action_dim,
+            kernel_init=default_init(self.final_fc_init_scale),
         )
         self.log_std_net = nn.Dense(
-            self.action_dim, kernel_init=default_init(self.final_fc_init_scale)
+            self.num_components * self.action_dim,
+            kernel_init=default_init(self.final_fc_init_scale),
+        )
+        self.logit_net = nn.Dense(
+            self.num_components, kernel_init=default_init(self.final_fc_init_scale)
         )
 
     @nn.compact
     def __call__(self, observations, is_encoded=False):
-        """Return the gated mean and log standard deviation of the source distribution."""
+        """Return mixture logits, means, and log standard deviations."""
         if not is_encoded and self.encoder is not None:
             observations = self.encoder(observations)
 
         hidden = self.mlp(observations)
+        logits = self.logit_net(hidden)
         means = self.mean_net(hidden)
+        means = means.reshape(*means.shape[:-1], self.num_components, self.action_dim)
         log_stds = self.log_std_net(hidden)
-        log_stds = jnp.clip(log_stds, self.log_std_min, self.log_std_max)
-        kappa_logit = self.param(
-            "kappa_logit", nn.initializers.constant(0.0), (1,)
+        log_stds = log_stds.reshape(
+            *log_stds.shape[:-1], self.num_components, self.action_dim
         )
-        kappa = nn.sigmoid(kappa_logit)
-        means = kappa * means
-        return means, log_stds, kappa
+        log_stds = jnp.clip(log_stds, self.log_std_min, self.log_std_max)
+        return logits, means, log_stds

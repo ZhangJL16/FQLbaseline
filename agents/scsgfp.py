@@ -26,14 +26,31 @@ class SCSGFPAgent(flax.struct.PyTreeNode):
         q = self.network.select("target_critic")(obs, actions)
         return getattr(jnp, self.config["q_agg"])(q, axis=0)
 
-    def condition_source_actions(self, observations, base_noises, grad_params=None):
+    def _select_source_component(self, logits, means, log_stds, component_rng):
+        probs = jax.nn.softmax(logits, axis=-1)
+        component_ids = jax.random.categorical(component_rng, logits, axis=-1)
+        selector = jax.nn.one_hot(
+            component_ids, self.config["source_num_components"], dtype=means.dtype
+        )[..., None]
+        selected_means = jnp.sum(means * selector, axis=-2)
+        selected_log_stds = jnp.sum(log_stds * selector, axis=-2)
+        entropy = -jnp.sum(probs * jnp.log(probs + 1e-8), axis=-1)
+        max_prob = jnp.max(probs, axis=-1)
+        return selected_means, selected_log_stds, entropy, max_prob
+
+    def condition_source_actions(
+        self, observations, base_noises, component_rng, grad_params=None
+    ):
         """Map standard Gaussian noises to a state-conditioned source."""
-        means, log_stds, kappa = self.network.select("source")(
+        logits, means, log_stds = self.network.select("source")(
             observations, params=grad_params
+        )
+        means, log_stds, entropy, max_prob = self._select_source_component(
+            logits, means, log_stds, component_rng
         )
         stds = jnp.exp(log_stds)
         actions = means + stds * base_noises
-        return actions, means, stds, log_stds, kappa
+        return actions, means, stds, log_stds, entropy, max_prob
 
     def source_align_loss(self, source_means, target_actions):
         """Align source means with target actions by direction and distance."""
@@ -157,11 +174,11 @@ class SCSGFPAgent(flax.struct.PyTreeNode):
     def actor_loss(self, batch, grad_params, rng):
         """Compute both the actor and the conditioned VaBC losses."""
         batch_size, action_dim = batch["actions"].shape
-        rng, distill_rng, flow_x_rng, flow_t_rng = jax.random.split(rng, 4)
+        rng, distill_rng, distill_comp_rng, flow_x_rng, flow_comp_rng, flow_t_rng = jax.random.split(rng, 6)
 
         teacher_noises = jax.random.normal(distill_rng, (batch_size, action_dim))
-        teacher_source_actions, _, _, _, _ = self.condition_source_actions(
-            batch["observations"], teacher_noises
+        teacher_source_actions, _, _, _, _, _ = self.condition_source_actions(
+            batch["observations"], teacher_noises, distill_comp_rng
         )
         target_vabc_acts = self.compute_flow_actions(
             batch["observations"], source_actions=teacher_source_actions
@@ -180,8 +197,8 @@ class SCSGFPAgent(flax.struct.PyTreeNode):
             q_loss = lam * q_loss
 
         source_noises = jax.random.normal(flow_x_rng, (batch_size, action_dim))
-        x_0, source_means, source_stds, source_log_stds, source_kappa = self.condition_source_actions(
-            batch["observations"], source_noises, grad_params=grad_params
+        x_0, source_means, source_stds, source_log_stds, source_entropy, source_max_prob = self.condition_source_actions(
+            batch["observations"], source_noises, flow_comp_rng, grad_params=grad_params
         )
         x_1 = batch["actions"]
         t = jax.random.uniform(flow_t_rng, (batch_size, 1))
@@ -224,7 +241,8 @@ class SCSGFPAgent(flax.struct.PyTreeNode):
                 q_loss=q_loss,
                 source_mean_abs=jnp.abs(source_means).mean(),
                 source_std_mean=source_stds.mean(),
-                source_kappa=jnp.mean(source_kappa),
+                source_component_entropy=jnp.mean(source_entropy),
+                source_component_max_prob=jnp.mean(source_max_prob),
                 **align_info,
                 **g_info,
             )
@@ -339,8 +357,11 @@ class SCSGFPAgent(flax.struct.PyTreeNode):
     @jax.jit
     def sample_flow_actions(self, observations, seed, temperature=1.0):
         """Sample conditioned source actions then integrate the VaBC teacher."""
-        noises = self.sample_noises(observations, seed)
-        source_actions, _, _, _, _ = self.condition_source_actions(observations, noises)
+        component_rng, noise_rng = jax.random.split(seed)
+        noises = self.sample_noises(observations, noise_rng)
+        source_actions, _, _, _, _, _ = self.condition_source_actions(
+            observations, noises, component_rng
+        )
         return self.compute_flow_actions(observations, source_actions)
 
     @classmethod
@@ -390,6 +411,7 @@ class SCSGFPAgent(flax.struct.PyTreeNode):
         source_def = ConditionalGaussianSource(
             hidden_dims=config["source_hidden_dims"],
             action_dim=action_dim,
+            num_components=config["source_num_components"],
             layer_norm=config["source_layer_norm"],
             log_std_min=config["source_log_std_min"],
             log_std_max=config["source_log_std_max"],

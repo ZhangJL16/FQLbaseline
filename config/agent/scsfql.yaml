@@ -15,6 +15,7 @@ flow_steps: 10
 # Fixed:
 normalize_q_loss: False
 source_hidden_dims: [512,512,512,512]
+source_num_components: 4
 source_layer_norm: False
 source_log_std_min: -5.0
 source_log_std_max: 2.0

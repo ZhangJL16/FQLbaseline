@@ -22,6 +22,7 @@ normalize_q_loss: True
 target_use_next: False
 encode_time_dim: 64
 source_hidden_dims: [512,512,512,512]
+source_num_components: 4
 source_layer_norm: False
 source_log_std_min: -5.0
 source_log_std_max: 2.0
