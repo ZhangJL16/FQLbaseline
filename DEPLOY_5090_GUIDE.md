@@ -131,7 +131,46 @@ WANDB_MODE=online uv run python main.py seed=0 agent=scsgfp env_name=humanoidmaz
 
 ### 5.1 OGBench
 
-`OGBench` 不走 [download_minari_datasets.py](/mnt/d/Projects/RL/FQLbaseline/download_minari_datasets.py:1)，直接运行训练命令即可。
+`OGBench` 不走 [download_minari_datasets.py](/mnt/d/Projects/RL/FQLbaseline/download_minari_datasets.py:1)。
+
+这套仓库里 **OGBench 没有单独的数据集下载脚本**，也不需要像 `Minari` 那样先执行 `download_minari_datasets.py`。  
+也就是说，**OGBench 的“下载数据集”步骤就是：安装好依赖后，直接运行训练命令**。
+
+建议按下面顺序做一次最小确认：
+
+```bash
+cd FQLbaseline
+source .venv/bin/activate
+```
+
+先确认 JAX GPU 正常：
+
+```bash
+uv run python -c "import jax; print(jax.devices())"
+```
+
+再确认 agent 注册正常：
+
+```bash
+uv run python -c "from agents import agents; print(sorted(agents.keys()))"
+```
+
+最后做一个 OGBench 小步数 smoke test，这一步会触发环境和数据准备流程：
+
+```bash
+WANDB_MODE=offline uv run python main.py seed=0 agent=gfp env_name=humanoidmaze-medium-navigate-singletask-v0 offline_steps=1000 eval_interval=500 log_interval=500
+```
+
+如果上面这条可以正常开始训练，就说明当前机器上的 OGBench 路径已经打通，不需要再额外“下载 OGBench 数据集”。
+
+常用 OGBench 单任务命令：
+
+```bash
+WANDB_MODE=online uv run python main.py seed=0 agent=fql env_name=humanoidmaze-medium-navigate-singletask-v0
+WANDB_MODE=online uv run python main.py seed=0 agent=scsfql env_name=humanoidmaze-medium-navigate-singletask-v0
+WANDB_MODE=online uv run python main.py seed=0 agent=gfp env_name=humanoidmaze-medium-navigate-singletask-v0
+WANDB_MODE=online uv run python main.py seed=0 agent=scsgfp env_name=humanoidmaze-medium-navigate-singletask-v0
+```
 
 ### 5.2 Minari 按需下载
 
@@ -192,6 +231,29 @@ uv run python download_minari_datasets.py --datasets "D4RL/pen/expert-v2"
 WANDB_MODE=online uv run python main.py seed=0 agent=gfp env_name='D4RL/pen/expert-v2'
 ```
 
+### 5.4 D4RL / Minari 常用下载命令速查
+
+如果你只打算跑单个任务，直接下载对应数据集即可。
+
+Adroit:
+
+```bash
+uv run python download_minari_datasets.py --datasets "D4RL/pen/expert-v2"
+uv run python download_minari_datasets.py --datasets "D4RL/pen/cloned-v2"
+uv run python download_minari_datasets.py --datasets "D4RL/pen/human-v2"
+uv run python download_minari_datasets.py --datasets "D4RL/door/expert-v2"
+uv run python download_minari_datasets.py --datasets "D4RL/hammer/expert-v2"
+uv run python download_minari_datasets.py --datasets "D4RL/relocate/expert-v2"
+```
+
+MuJoCo:
+
+```bash
+uv run python download_minari_datasets.py --datasets "mujoco/halfcheetah/medium-v0"
+uv run python download_minari_datasets.py --datasets "mujoco/hopper/medium-v0"
+uv run python download_minari_datasets.py --datasets "mujoco/walker2d/medium-v0"
+```
+
 ## 6. 常用训练命令
 
 ### 6.1 单任务单种算法
@@ -202,6 +264,59 @@ WANDB_MODE=online uv run python main.py seed=0 agent=gfp env_name=humanoidmaze-m
 
 ```bash
 WANDB_MODE=online uv run python main.py seed=0 agent=scsgfp env_name=humanoidmaze-medium-navigate-singletask-v0
+```
+
+### 6.1.1 D4RL / Minari 单任务单种算法
+
+下面这些命令都默认走仓库里的任务级超参恢复，不需要手工把 `alpha/q_agg/discount` 一项项补齐。
+
+FQL:
+
+```bash
+WANDB_MODE=online uv run python main.py seed=0 agent=fql env_name='D4RL/pen/expert-v2'
+WANDB_MODE=online uv run python main.py seed=0 agent=fql env_name='mujoco/halfcheetah/medium-v0'
+```
+
+SCSFQL:
+
+```bash
+WANDB_MODE=online uv run python main.py seed=0 agent=scsfql env_name='D4RL/pen/expert-v2'
+WANDB_MODE=online uv run python main.py seed=0 agent=scsfql env_name='mujoco/halfcheetah/medium-v0'
+```
+
+GFP:
+
+```bash
+WANDB_MODE=online uv run python main.py seed=0 agent=gfp env_name='D4RL/pen/expert-v2'
+WANDB_MODE=online uv run python main.py seed=0 agent=gfp env_name='mujoco/halfcheetah/medium-v0'
+```
+
+SCSGFP:
+
+```bash
+WANDB_MODE=online uv run python main.py seed=0 agent=scsgfp env_name='D4RL/pen/expert-v2'
+WANDB_MODE=online uv run python main.py seed=0 agent=scsgfp env_name='mujoco/halfcheetah/medium-v0'
+```
+
+### 6.1.2 D4RL / Minari 多 seed 对比模板
+
+对比 `gfp` 和 `scsgfp`：
+
+```bash
+WANDB_MODE=online uv run python main.py -m seed=0,1,2 agent=gfp,scsgfp wandb.group=scsgfp_vs_gfp_d4rl env_name='D4RL/pen/expert-v2'
+```
+
+对比 `fql` 和 `scsfql`：
+
+```bash
+WANDB_MODE=online uv run python main.py -m seed=0,1,2 agent=fql,scsfql wandb.group=scsfql_vs_fql_d4rl env_name='D4RL/pen/expert-v2'
+```
+
+MuJoCo 任务同理：
+
+```bash
+WANDB_MODE=online uv run python main.py -m seed=0,1,2 agent=gfp,scsgfp wandb.group=scsgfp_vs_gfp_mujoco env_name='mujoco/halfcheetah/medium-v0'
+WANDB_MODE=online uv run python main.py -m seed=0,1,2 agent=fql,scsfql wandb.group=scsfql_vs_fql_mujoco env_name='mujoco/halfcheetah/medium-v0'
 ```
 
 ### 6.2 对比 scsgfp 和 gfp
