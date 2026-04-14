@@ -11,13 +11,24 @@ git remote -v
 本仓库当前 `origin`：
 
 ```bash
-origin  https://github.com/ZhangJL16/FQLbaseline.git
+origin  git@github.com:ZhangJL16/FQLbaseline.git
+gitee   git@gitee.com:zhang-jiale0112/fqlbaseline.git
 ```
+
+如果你主要在国内机器之间同步，建议优先使用 `gitee`。
 
 ## 2. 第一次拉取仓库
 
+从 Gitee 拉取：
+
 ```bash
-git clone https://github.com/ZhangJL16/FQLbaseline.git && cd FQLbaseline
+git clone git@gitee.com:zhang-jiale0112/fqlbaseline.git && cd FQLbaseline
+```
+
+从 GitHub 拉取：
+
+```bash
+git clone git@github.com:ZhangJL16/FQLbaseline.git && cd FQLbaseline
 ```
 
 ## 3. 每次开始工作前
@@ -34,10 +45,22 @@ git status --short --branch
 git fetch origin
 ```
 
+如果你平时主要同步 Gitee：
+
+```bash
+git fetch gitee
+```
+
 把远程 `main` 同步到本地当前分支，推荐用 rebase：
 
 ```bash
 git pull --rebase origin main
+```
+
+Gitee 版本：
+
+```bash
+git pull --rebase gitee main
 ```
 
 ## 4. 日常开发推荐流程
@@ -50,6 +73,12 @@ git checkout main
 
 ```bash
 git pull --rebase origin main
+```
+
+或者：
+
+```bash
+git pull --rebase gitee main
 ```
 
 ### 4.2 修改完先检查
@@ -96,6 +125,12 @@ git commit -m "写清楚这次修改做了什么"
 git push origin main
 ```
 
+上传到 Gitee：
+
+```bash
+git push gitee main
+```
+
 ## 5. 在另一台机器上同步最新代码
 
 进入仓库：
@@ -107,17 +142,17 @@ cd FQLbaseline
 拉远程更新：
 
 ```bash
-git pull --rebase origin main
+git pull --rebase gitee main
 ```
 
 如果只是想看远程更新了什么：
 
 ```bash
-git fetch origin
+git fetch gitee
 ```
 
 ```bash
-git log --oneline HEAD..origin/main
+git log --oneline HEAD..gitee/main
 ```
 
 ## 6. 本地和远程都改了时怎么同步
@@ -142,6 +177,16 @@ git pull --rebase origin main
 
 ```bash
 git push origin main
+```
+
+如果你走 Gitee：
+
+```bash
+git pull --rebase gitee main
+```
+
+```bash
+git push gitee main
 ```
 
 ## 7. 常用查看命令
@@ -198,6 +243,8 @@ git rebase --abort
 
 ## 9. 适合这个项目的最简工作流
 
+### 9.1 GitHub 版本
+
 机器 A 开发并上传：
 
 ```bash
@@ -223,11 +270,53 @@ git push origin main
 机器 B 拉取并运行：
 
 ```bash
-git clone https://github.com/ZhangJL16/FQLbaseline.git && cd FQLbaseline
+git clone git@github.com:ZhangJL16/FQLbaseline.git && cd FQLbaseline
 ```
 
 ```bash
 git pull --rebase origin main
+```
+
+```bash
+source .venv/bin/activate
+```
+
+```bash
+uv run python main.py seed=0 agent=scsgfp env_name=humanoidmaze-medium-navigate-singletask-v0
+```
+
+### 9.2 Gitee 版本
+
+机器 A 开发并上传：
+
+```bash
+git checkout main
+```
+
+```bash
+git pull --rebase gitee main
+```
+
+```bash
+git add .
+```
+
+```bash
+git commit -m "update training code and deployment docs"
+```
+
+```bash
+git push gitee main
+```
+
+机器 B 拉取并运行：
+
+```bash
+git clone git@gitee.com:zhang-jiale0112/fqlbaseline.git && cd FQLbaseline
+```
+
+```bash
+git pull --rebase gitee main
 ```
 
 ```bash
