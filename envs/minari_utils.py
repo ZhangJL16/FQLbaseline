@@ -106,12 +106,13 @@ def check_ref_scores(dataset:MinariDataset):
                     "January 2026 https://github.com/Farama-Foundation/Minari/issues/323"
                 )
             return
-        if metadata_scores is not None:
-            MINARI_REF_SCORES = metadata_scores
-        else:
-            raise Exception(
-                f"Reference scores for the Minari dataset {dataset.id} were neither "\
-                f"found in the dataset metadata nor in our dict of reference scores.")
+    if metadata_scores is not None:
+        MINARI_REF_SCORES = metadata_scores
+        return
+    raise Exception(
+        f"Reference scores for the Minari dataset {dataset.id} were neither "
+        f"found in the dataset metadata nor in our dict of reference scores."
+    )
     
 
 def minari_normalized_score(acc_reward):

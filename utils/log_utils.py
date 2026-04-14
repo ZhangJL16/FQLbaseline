@@ -56,6 +56,8 @@ def wandb_init(
     exp_name: str,
     processed_env_name: str,
 ):
+    if wandb.run is not None:
+        wandb.finish()
     config = OmegaConf.to_container(cfg, resolve=True, throw_on_missing=True)
     to_sci = lambda x : f"f{float(x):.1e}"
     cfg_agent = config["agent"]
