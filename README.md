@@ -56,6 +56,23 @@ Install the other requirements (by default works with OGBench and Minari)
 pip install -r requirements.txt
 ```
 
+To pre-download all Minari datasets used by this repository instead of downloading them on demand during training:
+```shell
+# All 21 Minari datasets used in our benchmark
+python download_minari_datasets.py
+
+# Only list the dataset ids
+python download_minari_datasets.py --list
+
+# Only the Adroit or MuJoCo subsets
+python download_minari_datasets.py --group adroit
+python download_minari_datasets.py --group mujoco
+```
+If needed, the download script also supports overriding the remote and local cache path:
+```shell
+python download_minari_datasets.py --remote hf://farama-minari --cache-dir /path/to/minari-cache
+```
+
 # Usage
 We use [Hydra](https://hydra.cc/) to manage configs and command lines overrides. Given an env_name and an agent, the best hyperparameters are recovered from the [hyperparams folder](hyperparams/) if available. Here are some example commands:
 ```shell

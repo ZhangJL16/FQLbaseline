@@ -270,3 +270,45 @@ class ActorVectorField(nn.Module):
         v = self.mlp(inputs)
 
         return v
+
+
+class ConditionalGaussianSource(nn.Module):
+    """State-conditioned Gaussian source distribution for flow matching."""
+
+    hidden_dims: Sequence[int]
+    action_dim: int
+    layer_norm: bool = False
+    log_std_min: float = -5.0
+    log_std_max: float = 2.0
+    final_fc_init_scale: float = 1e-2
+    encoder: nn.Module = None
+
+    def setup(self) -> None:
+        self.mlp = MLP(
+            self.hidden_dims,
+            activate_final=True,
+            layer_norm=self.layer_norm,
+        )
+        self.mean_net = nn.Dense(
+            self.action_dim, kernel_init=default_init(self.final_fc_init_scale)
+        )
+        self.log_std_net = nn.Dense(
+            self.action_dim, kernel_init=default_init(self.final_fc_init_scale)
+        )
+
+    @nn.compact
+    def __call__(self, observations, is_encoded=False):
+        """Return the gated mean and log standard deviation of the source distribution."""
+        if not is_encoded and self.encoder is not None:
+            observations = self.encoder(observations)
+
+        hidden = self.mlp(observations)
+        means = self.mean_net(hidden)
+        log_stds = self.log_std_net(hidden)
+        log_stds = jnp.clip(log_stds, self.log_std_min, self.log_std_max)
+        kappa_logit = self.param(
+            "kappa_logit", nn.initializers.constant(0.0), (1,)
+        )
+        kappa = nn.sigmoid(kappa_logit)
+        means = kappa * means
+        return means, log_stds, kappa

@@ -2,6 +2,44 @@ import warnings
 import numpy as np
 from minari import MinariDataset
 
+MINARI_BENCHMARK_DATASETS = (
+    "D4RL/door/cloned-v2",
+    "D4RL/door/expert-v2",
+    "D4RL/door/human-v2",
+    "D4RL/hammer/cloned-v2",
+    "D4RL/hammer/expert-v2",
+    "D4RL/hammer/human-v2",
+    "D4RL/pen/cloned-v2",
+    "D4RL/pen/expert-v2",
+    "D4RL/pen/human-v2",
+    "D4RL/relocate/cloned-v2",
+    "D4RL/relocate/expert-v2",
+    "D4RL/relocate/human-v2",
+    "mujoco/halfcheetah/expert-v0",
+    "mujoco/halfcheetah/medium-v0",
+    "mujoco/halfcheetah/simple-v0",
+    "mujoco/hopper/expert-v0",
+    "mujoco/hopper/medium-v0",
+    "mujoco/hopper/simple-v0",
+    "mujoco/walker2d/expert-v0",
+    "mujoco/walker2d/medium-v0",
+    "mujoco/walker2d/simple-v0",
+)
+
+MINARI_BENCHMARK_GROUPS = {
+    "all": MINARI_BENCHMARK_DATASETS,
+    "adroit": tuple(ds for ds in MINARI_BENCHMARK_DATASETS if ds.startswith("D4RL/")),
+    "mujoco": tuple(ds for ds in MINARI_BENCHMARK_DATASETS if ds.startswith("mujoco/")),
+}
+
+
+def get_minari_benchmark_datasets(group: str = "all") -> tuple[str, ...]:
+    try:
+        return MINARI_BENCHMARK_GROUPS[group]
+    except KeyError as exc:
+        valid = ", ".join(sorted(MINARI_BENCHMARK_GROUPS))
+        raise ValueError(f"Unknown Minari dataset group '{group}'. Valid groups: {valid}.") from exc
+
 def convert_episodes_to_transitions(episodes):
     # Recover OGBench-like dataset
     transitions = dict(

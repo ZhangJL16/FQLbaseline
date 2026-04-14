@@ -9,3 +9,5 @@ wandb/
 .vscode/
 trash/
 .pre-commit-config.yaml
+logs/
+.codex

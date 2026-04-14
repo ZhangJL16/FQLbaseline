@@ -1,0 +1,20 @@
+agent_name: "scsfql"
+
+# Tuned hyperparameters:
+alpha: 10
+lambda_var: 1e-2
+lambda_align: 1e-2
+align_direction_alpha: 1.0
+align_l2_beta: 1.0
+align_norm_c: 1.0
+
+# May vary depending on the benchmark/env:
+q_agg: "mean" # | "min"
+flow_steps: 10
+
+# Fixed:
+normalize_q_loss: False
+source_hidden_dims: [512,512,512,512]
+source_layer_norm: False
+source_log_std_min: -5.0
+source_log_std_max: 2.0

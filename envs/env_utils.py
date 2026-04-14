@@ -160,9 +160,9 @@ def make_env_and_datasets(
             import d4rl.hand_manipulation_suite  # noqa
             # TODO why ??
         from envs import d4rl_utils
+        env = d4rl_utils.make_env(env_name)
         dataset = d4rl_utils.get_dataset(env, env_name)
         train_dataset, val_dataset = dataset, None
-        env = d4rl_utils.make_env(env_name)
         def eval_env_creator():
             eval_env = d4rl_utils.make_env(env_name)
             eval_env.reset()

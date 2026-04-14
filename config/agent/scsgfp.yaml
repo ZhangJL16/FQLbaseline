@@ -1,0 +1,27 @@
+agent_name: "scsgfp"
+
+# Tuned hyperparameters:
+alpha: 1.
+eta_temperature: 1e-3
+lambda_var: 1e-2
+lambda_align: 1e-2
+align_direction_alpha: 1.0
+align_l2_beta: 1.0
+align_norm_c: 1.0
+
+# May vary depending on the benchmark/env:
+q_agg: "mean" # Options: mean, min
+target_agg: "actor" # Options: actor, flow, min, mean, max => By default "actor", sometimes "mean"
+guidance_agg: "actor" # Options: actor, flow, min, mean, max => Always "actor" but use to be "min"
+flow_steps: 10
+eta_temperature_online: null # default to eta_temperature
+
+# Fixed:
+guidance_fn: "softmax" # Options: softmax, advantage => advantage was used for an ablation study, see Appendix B.2 in the paper
+normalize_q_loss: True
+target_use_next: False
+encode_time_dim: 64
+source_hidden_dims: [512,512,512,512]
+source_layer_norm: False
+source_log_std_min: -5.0
+source_log_std_max: 2.0
